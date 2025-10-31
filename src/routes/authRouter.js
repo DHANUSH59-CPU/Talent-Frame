@@ -6,10 +6,11 @@ const {
   login,
   logout,
 } = require("../controllers/auth.controller.js");
+const userMiddleware = require("../middleware/userMiddleware.js");
 
 // Example route for user login
 
-authRouter.get("/checkAuth", checkAuth);
+authRouter.get("/check-Auth", userMiddleware, checkAuth);
 
 authRouter.post("/signup", signup);
 authRouter.post("/login", login);

@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
     // Basic info
     userName: { type: String, required: true, trim: true },
     emailId: { type: String, required: true, unique: true, lowercase: true },
-    password: { type: String, required: true, minlength: 6, select: false },
+    password: { type: String, required: true, minlength: 6 },
 
     // Common profile fields
     profileImage: { type: String, default: "" },

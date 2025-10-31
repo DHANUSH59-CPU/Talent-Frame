@@ -10,9 +10,11 @@ const signup = async (req, res) => {
 
   const { userName, emailId, password, role } = req.body;
 
+  console.log(req.body);
+
   try {
     if (!userName || !emailId || !password || !role) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "All fields are required!!" });
     }
 
     const userAlreadyExists = await User.findOne({ emailId });
@@ -66,9 +68,12 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // comparing the password
+    console.log(user);
 
+    // comparing the password
+    console.log("Here");
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -79,7 +84,9 @@ const login = async (req, res) => {
       user: { ...user._doc, password: undefined },
     });
   } catch (err) {
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ message: err.message || "Internal Server Error" });
   }
 };
 
