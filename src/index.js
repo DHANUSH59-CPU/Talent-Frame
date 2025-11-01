@@ -11,15 +11,29 @@ const authRouter = require("./routes/authRouter");
 const profileRouter = require("./routes/profileRouter");
 const imageRoutes = require("./routes/imageRouter");
 
-
 const app = express();
 
-const FRONTEND = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+const FRONTEND_ORIGINS = [
+  "https://frontend-u92q.onrender.com",
+  "http://localhost:5173",
+  process.env.FRONTEND_ORIGIN, // Allow additional origins from env
+]
+  .filter(Boolean) // Remove any undefined values
+  .filter((origin, index, self) => self.indexOf(origin) === index); // Remove duplicates
+
 const PORT = process.env.PORT || 3000;
 
 app.use(
   cors({
-    origin: FRONTEND, // must be specific when credentials: true
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (FRONTEND_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

@@ -47,6 +47,8 @@ router.post("/upload", upload.single("image"), async (req, res) => {
       })
     );
 
+    // console.log("✅ Match found:", matches);
+
     res.json({ count: matches.length, matches });
   } catch (err) {
     console.error("❌ Match error:", err.message || err);
