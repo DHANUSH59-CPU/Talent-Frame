@@ -13,6 +13,21 @@ const userSchema = new mongoose.Schema(
     location: { type: String, default: "Not specified" },
     bio: { type: String, maxlength: 1000 },
 
+    // ✅ Face embedding + Pinecone sync status
+    faceEmbedding: {
+      type: [Number], // store raw 512-D embedding if needed
+      default: [],
+      select: false, // hide from queries by default
+    },
+    pineconeSynced: {
+      type: Boolean,
+      default: false,
+    },
+    embeddingId: {
+      type: String, // optional: Pinecone vector ID (same as user._id)
+      default: "",
+    },
+
     // Role-based system
     role: {
       type: String,
@@ -39,8 +54,6 @@ const userSchema = new mongoose.Schema(
       pastProjects: [{ type: String }],
       castingPreferences: [{ type: String }], // e.g., "Comedy", "Thriller"
     },
-
-    // Tokens (for login sessions)
   },
   { timestamps: true }
 );

@@ -3,12 +3,14 @@ const dotenv = require("dotenv");
 dotenv.config(); // load env BEFORE importing any routes/controllers
 const cookieParser = require("cookie-parser");
 const { connectDB } = require("./database/connectDB");
+const matchRouter = require("./routes/matchRouter");
 
 const cors = require("cors");
 
 const authRouter = require("./routes/authRouter");
 const profileRouter = require("./routes/profileRouter");
 const imageRoutes = require("./routes/imageRouter");
+
 
 const app = express();
 
@@ -30,8 +32,11 @@ app.use(cookieParser());
 // ✅ use app.use() to mount router
 app.use("/user", authRouter);
 app.use("/api", profileRouter);
+console.log("Mounted /api/image to imageRoutes");
 app.use("/api/image", imageRoutes);
+
 app.use("/profile", profileRouter);
+app.use("/api/match", matchRouter);
 
 const InitializeConnection = async () => {
   try {
