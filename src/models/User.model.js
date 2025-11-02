@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema(
     // Basic info
     userName: { type: String, required: true, trim: true },
     emailId: { type: String, required: true, unique: true, lowercase: true },
-    password: { type: String, required: true, minlength: 6 },
+    password: { type: String, required: function() { return !this.googleId; }, minlength: 6 },
+    googleId: { type: String, sparse: true }, // For Google OAuth users
 
     // Common profile fields
     profileImage: { type: String, default: "" },

@@ -1,9 +1,12 @@
 const User = require("../models/User.model");
 
 const bcrypt = require("bcryptjs");
+const { OAuth2Client } = require("google-auth-library");
 const {
   generateTokenAndSetCookie,
 } = require("../utils/generateTokenAndSetCookie");
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const signup = async (req, res) => {
   // validate here (validate(req.body))
@@ -109,6 +112,69 @@ const logout = async (req, res) => {
   }
 };
 
+const googleAuth = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ message: "Google token is required" });
+    }
+
+    // Verify Google token
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email not provided by Google" });
+    }
+
+    // Check if user exists
+    let user = await User.findOne({ emailId: email.toLowerCase() });
+
+    if (user) {
+      // Update existing user with Google ID if not already set
+      if (!user.googleId) {
+        user.googleId = googleId;
+        if (picture && !user.profileImage) {
+          user.profileImage = picture;
+        }
+        await user.save();
+      }
+    } else {
+      // Create new user
+      user = new User({
+        userName: name || email.split("@")[0],
+        emailId: email.toLowerCase(),
+        googleId: googleId,
+        profileImage: picture || "",
+        role: "actor", // Default role
+      });
+      await user.save();
+    }
+
+    // Generate token and set cookie
+    generateTokenAndSetCookie(res, user._id, user.role);
+
+    return res.status(200).json({
+      message: "Google authentication successful",
+      user: {
+        ...user._doc,
+        password: undefined,
+      },
+    });
+  } catch (error) {
+    console.error("Google auth error:", error);
+    return res
+      .status(500)
+      .json({ message: "Google authentication failed", error: error.message });
+  }
+};
+
 const checkAuth = async (req, res) => {
   try {
     const user = await User.findById(req.userId).select("-password");
@@ -121,4 +187,4 @@ const checkAuth = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, logout, checkAuth };
+module.exports = { signup, login, logout, checkAuth, googleAuth };
