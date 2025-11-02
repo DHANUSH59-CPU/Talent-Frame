@@ -50,8 +50,8 @@ app.use(
   })
 );
 
-// Handle preflight requests explicitly
-app.options("*", cors());
+// CORS middleware already handles OPTIONS preflight requests automatically
+// No need for explicit app.options() - it causes errors in Express 5
 
 app.use(express.json());
 app.use(cookieParser());
