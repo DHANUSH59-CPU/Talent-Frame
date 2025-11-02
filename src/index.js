@@ -65,17 +65,38 @@ app.use("/api/image", imageRoutes);
 app.use("/profile", profileRouter);
 app.use("/api/match", matchRouter);
 
+// Health check endpoint (required for Render)
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is running" });
+});
+
+// Start server immediately (required for Render port detection)
+const server = app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+// Connect to database asynchronously (non-blocking)
+// This runs after the server starts listening, so Render can detect the port
 const InitializeConnection = async () => {
   try {
     await connectDB();
     console.log("Database connected successfully");
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
   } catch (err) {
     console.error("Database connection failed", err);
+    // Server is already listening, so Render can detect the port
+    // Exit on database failure to prevent serving requests without DB
     process.exit(1);
   }
 };
 
+// Connect to database in background
 InitializeConnection();
+
+// Graceful shutdown
+process.on("SIGTERM", () => {
+  console.log("SIGTERM signal received: closing HTTP server");
+  server.close(() => {
+    console.log("HTTP server closed");
+    process.exit(0);
+  });
+});
