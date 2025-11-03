@@ -4,6 +4,9 @@ dotenv.config(); // load env BEFORE importing any routes/controllers
 const cookieParser = require("cookie-parser");
 const { connectDB } = require("./database/connectDB");
 const matchRouter = require("./routes/matchRouter");
+const chatRouter = require("./routes/chatRouter");
+const initializeSocket = require("./utils/socket");
+const http = require("http");
 
 const cors = require("cors");
 
@@ -64,14 +67,21 @@ app.use("/api/image", imageRoutes);
 
 app.use("/profile", profileRouter);
 app.use("/api/match", matchRouter);
+app.use("/api", chatRouter);
 
 // Health check endpoint (required for Render)
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
 });
 
+// Create HTTP server and integrate Socket.IO
+const server = http.createServer(app);
+
+// Initialize Socket.IO
+initializeSocket(server);
+
 // Start server immediately (required for Render port detection)
-const server = app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
